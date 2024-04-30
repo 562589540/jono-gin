@@ -1,0 +1,201 @@
+import dayjs from "dayjs";
+import editForm from "../form.vue";
+import { message } from "@/utils/message";
+import { ElMessageBox } from "element-plus";
+import { transformI18n } from "@/plugins/i18n";
+import { addDialog } from "@/components/ReDialog";
+import type { FormItemProps } from "./types";
+import type { PaginationProps } from "@pureadmin/table";
+import { getKeyList, deviceDetection } from "@pureadmin/utils";
+import { type Ref, reactive, ref, onMounted, h, toRaw } from "vue";
+import { usePublicHooks } from "../../../lib/hooks";
+import { Add[[ .NameEnPas ]], Del[[ .NameEnPas ]], Get[[ .NameEnPas ]]List, Update[[ .NameEnPas ]] } from "@/api/[[ .Directory ]]/[[ .NameEn ]]";
+
+export function useHook(tableRef: Ref) {
+  const { tagStyle } = usePublicHooks();
+
+  const form = reactive({
+[[ customVar .Fields ]]
+  });
+  const formRef = ref();
+  const dataList = ref([]);
+  const isShow = ref(false);
+  const loading = ref(true);
+  const selectedNum = ref(0);
+  const switchLoadMap = ref({});
+  const pagination = reactive<PaginationProps>({
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  });
+  const columns: TableColumnList = [
+    {
+      label: "勾选列", // 如果需要表格多选，此处label必须设置
+      type: "selection",
+      fixed: "left",//是否固定
+      reserveSelection: true // 数据刷新后保留选项
+    },
+    {
+      label: "序号",
+      prop: "id",
+      minWidth: 90
+    },
+[[ tableColumnList .Fields ]]
+    {
+      label: "操作",
+      fixed: "right",
+      minWidth: 160,
+      slot: "operation"
+    }
+  ];
+
+[[ switchChange  ]]
+
+  async function handleDelete(row) {
+    await Del[[ .NameEnPas ]]({
+      ids: [row.id]
+    })
+    message(`您删除了序号为${row.id}的这条数据`, { type: "success" });
+    onSearch();
+  }
+
+  function handleSizeChange(val: number) {
+    console.log(`${val} items per page`);
+    onSearch()
+  }
+
+  function handleCurrentChange(val: number) {
+    console.log(`current page: ${val}`);
+    pagination.currentPage = val;
+    onSearch()
+  }
+
+  /** 当CheckBox选择项发生变化时会触发该事件 */
+  function handleSelectionChange(val) {
+    selectedNum.value = val.length;
+    // 重置表格高度
+    tableRef.value.setAdaptive();
+  }
+
+  //获取列表
+  async function onSearch() {
+    loading.value = true;
+    const response = await Get[[ .NameEnPas ]]List({
+      ...toRaw(form),
+      page: pagination.currentPage,
+      limit: pagination.pageSize,
+    });
+
+    if (response && response.data) {
+      dataList.value = response.data.list;
+      pagination.total = response.data.total;
+    }
+
+    setTimeout(() => {
+      loading.value = false;
+    }, 500);
+  }
+
+  const resetForm = formEl => {
+    if (!formEl) return;
+    formEl.resetFields();
+    onSearch();
+  };
+
+  function openDialog(title = "新增", row?: FormItemProps) {
+    addDialog({
+      title: `${title}[[ .NameZh ]]`,
+      props: {
+        formInline: {
+[[ openDialogProps .Fields ]]
+        }
+      },
+      width: "40%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      fullscreenIcon: true,
+      closeOnClickModal: false,
+      contentRenderer: () => h(editForm, { ref: formRef }),
+      beforeSure: (done, { options }) => {
+        const FormRef = formRef.value.getRef();
+        const curData = options.props.formInline as FormItemProps;
+        var msg
+        if (title === "新增") {
+          msg = `您新增了一条数据`
+        } else {
+          msg = `您${title}了序号为${curData.id}的这条数据`
+        }
+        function chores() {
+          message(msg, {
+            type: "success"
+          });
+          done(); // 关闭弹框
+          onSearch(); // 刷新表格数据
+        }
+        FormRef.validate(async valid => {
+          if (valid) {
+            console.log("curData", curData);
+            // 表单规则校验通过
+            if (title === "新增") {
+              await Add[[ .NameEnPas ]](curData)
+              // 实际开发先调用新增接口，再进行下面操作
+              chores();
+            } else {
+              curData.id = row.id
+              await Update[[ .NameEnPas ]](curData)
+              // 实际开发先调用修改接口，再进行下面操作
+              chores();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  /** 取消选择 */
+  function onSelectionCancel() {
+    selectedNum.value = 0;
+    // 用于多选表格，清空用户的选择
+    tableRef.value.getTableRef().clearSelection();
+  }
+
+  /** 批量删除 */
+  async function onbatchDel() {
+    // 返回当前选中的行
+    const curSelected = tableRef.value.getTableRef().getSelectionRows();
+    // 接下来根据实际业务，通过选中行的某项数据，比如下面的id，调用接口进行批量删除
+    await Del[[ .NameEnPas ]]({
+      ids: getKeyList(curSelected, "id")
+    })
+    message(`已删除序号为 ${getKeyList(curSelected, "id")} 的数据`, {
+      type: "success"
+    });
+    tableRef.value.getTableRef().clearSelection();
+    onSearch();
+  }
+
+  onMounted(async () => {
+    onSearch();
+  });
+
+  return {
+    form,
+    isShow,
+    loading,
+    columns,
+    dataList,
+    pagination,
+    selectedNum,
+    onSelectionCancel,
+    onbatchDel,
+    onSearch,
+    resetForm,
+    openDialog,
+    handleDelete,
+    transformI18n,
+    handleSizeChange,
+    handleCurrentChange,
+    handleSelectionChange
+  };
+}

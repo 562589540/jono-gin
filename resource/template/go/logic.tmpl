@@ -1,0 +1,60 @@
+package {{.NameEn}}
+
+import (
+	"context"
+	"fmt"
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/dal"
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/dto"
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/model"
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/service"
+	"github.com/562589540/jono-gin/internal/constants"
+)
+
+var {{.NameEn}}Service service.I{{.NameEnPas}}Service
+
+type Service struct{}
+
+func New() service.I{{.NameEnPas}}Service {
+	if {{.NameEn}}Service == nil {
+		{{.NameEn}}Service = &Service{}
+	}
+	return {{.NameEn}}Service
+}
+
+func (m *Service) Create(data *dto.{{.NameEnPas}}AddReq) error {
+	err := dal.{{.NameEnPas}}.Create(&model.{{.NameEnPas}}{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Service) Delete(ids []uint) error {
+	_, err := dal.{{.NameEnPas}}.Where(dal.{{.NameEnPas}}.ID.In(ids...)).Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Service) Update(data *dto.{{.NameEnPas}}UpdateReq) error {
+	dp := dal.{{.NameEnPas}}
+	mModel, err := dp.Where(dp.ID.Eq(data.ID)).First()
+	if err != nil {
+		return fmt.Errorf(constants.NoDataFound)
+	}
+	return dp.WithContext(context.Background()).Save(mModel)
+}
+
+func (m *Service) List(_ *dto.{{.NameEnPas}}SearchReq) ([]dto.{{.NameEnPas}}, int64, error) {
+	dp := dal.{{.NameEnPas}}
+	list, err := dp.Order(dp.Sort.Asc()).Find()
+	if err != nil {
+		return nil, 0, err
+	}
+	nList := make([]dto.{{.NameEnPas}}, len(list))
+	for i, item := range list {
+
+	}
+	return nList, 0, nil
+}

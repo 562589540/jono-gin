@@ -1,0 +1,32 @@
+server:
+  port: 8090
+log:
+  output: "console"     #可选值: "console", "file", "both"
+  maxSize: 1            #日志文件最大尺寸(M)
+  maxBackups: 10        #保留旧文件的最大个数
+  maxAge: 90            #保留旧文件的最大大天数
+mode:
+  develop: true         #模式
+db:
+  dsn: root:112233@tcp(127.0.0.1:3306)/gin?charset=utf8mb4&parseTime=True&loc=Local
+  maxIdleCons: 10         #最多空闲连接数
+  maxOpenCons: 100        #最多打开链接数
+redis:
+  url: localhost:6379
+  password: ""
+  db: 0
+  prefix: "jonoGinAdminV1:" #缓存前缀 区别项目
+jwt:
+  tokenExpire: 120               #token有效时长(分钟)
+  refreshTokenExpire: 720       #刷新token有效时长(小时) 30天
+  signingKey: jono.cn           #签名使用的key
+path:
+  static: "static"                  #项目静态请求
+  resourcePath: "./resource/public"    #项目静态网站目录
+  uploadsPath: "uploads"        #上传目录
+  avatarPath: "avatar"          #头像目录
+system:
+  notCheckAuthAdminIds: [3]  #无需验证后台权限的用户id
+casbin:
+  modelFile: "./resource/casbin/rbac_model.conf"
+  policyFile: "./resource/casbin/rbac_policy.csv"

@@ -1,0 +1,23 @@
+import { http } from "@/utils/http";
+import { Result, ResultTable } from "../types";
+import { ApiUrl } from "../apiUrl";
+
+/** 查询[[ .NameZh ]]列表 */
+export const Get[[ .NameEnPas ]]List = (data?: object) => {
+  return http.request<ResultTable>("get", ApiUrl.baseUrl + "/[[ .NameEn ]]/list", { data });
+};
+
+/** 创建新[[ .NameZh ]] */
+export const Add[[ .NameEnPas ]] = (data?: object) => {
+  return http.request<Result>("post", ApiUrl.baseUrl + "/[[ .NameEn ]]/add", { data });
+};
+
+/** 删除[[ .NameZh ]] */
+export const Del[[ .NameEnPas ]] = (data?: object) => {
+  return http.request<Result>("delete", ApiUrl.baseUrl + "/[[ .NameEn ]]/delete", { data });
+};
+
+/** 更改[[ .NameZh ]] */
+export const Update[[ .NameEnPas ]] = (data?: object) => {
+  return http.request<Result>("put", ApiUrl.baseUrl + "/[[ .NameEn ]]/update", { data });
+};

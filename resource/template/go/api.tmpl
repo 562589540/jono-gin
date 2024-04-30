@@ -1,0 +1,60 @@
+package {{.AppName}}
+
+import (
+	"github.com/562589540/jono-gin/ghub/glibrary/gdto"
+	"github.com/562589540/jono-gin/ghub/glibrary/gres"
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/dto"
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/service"
+	"github.com/gin-gonic/gin"
+)
+
+type {{.NameEnPas}}Api struct {
+	{{.NameEn}}Service service.I{{.NameEnPas}}Service
+}
+
+func New{{.NameEnPas}}Api({{.NameEn}}Service service.I{{.NameEnPas}}Service) *{{.NameEnPas}}Api {
+	return &{{.NameEnPas}}Api{
+		{{.NameEn}}Service: {{.NameEn}}Service,
+	}
+}
+
+func (m {{.NameEnPas}}Api) Create(_ *gin.Context, req dto.{{.NameEnPas}}AddReq) (any, error) {
+	if err := m.{{.NameEn}}Service.Create(&req); err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Message: "创建成功",
+	}, nil
+}
+
+func (m {{.NameEnPas}}Api) List(_ *gin.Context, req dto.{{.NameEnPas}}SearchReq) (any, error) {
+	list, total, err := m.{{.NameEn}}Service.List(&req)
+	if err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Message: "查询成功",
+		Data: gdto.ListRes{
+			List:  list,
+			Total: total,
+		},
+	}, nil
+}
+
+func (m {{.NameEnPas}}Api) Update(_ *gin.Context, req dto.{{.NameEnPas}}UpdateReq) (any, error) {
+	if err := m.{{.NameEn}}Service.Update(&req); err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Message: "更新成功",
+	}, nil
+}
+
+func (m {{.NameEnPas}}Api) Delete(_ *gin.Context, req gdto.IDSReq) (any, error) {
+	if err := m.{{.NameEn}}Service.Delete(req.IDS); err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Message: "删除成功",
+	}, nil
+}

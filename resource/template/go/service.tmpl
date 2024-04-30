@@ -1,0 +1,12 @@
+package {{.PackageName}}
+
+import (
+	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/dto"
+)
+
+type I{{.NameEnPas}}Service interface {
+	Create(data *dto.{{.NameEnPas}}AddReq) error
+	Delete(ids []uint) error
+	Update(data *dto.{{.NameEnPas}}UpdateReq) error
+	List(search *dto.{{.NameEnPas}}SearchReq) ([]dto.{{.NameEnPas}}, int64, error)
+}
