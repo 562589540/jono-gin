@@ -1,12 +1,15 @@
 package {{.PackageName}}
 
 import (
+	"context"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/{{.AppName}}/dto"
 )
 
 type I{{.NameEnPas}}Service interface {
-	Create(data *dto.{{.NameEnPas}}AddReq) error
-	Delete(ids []uint) error
-	Update(data *dto.{{.NameEnPas}}UpdateReq) error
-	List(search *dto.{{.NameEnPas}}SearchReq) ([]dto.{{.NameEnPas}}, int64, error)
+	Dao(ctx context.Context) dal.I{{.NameEnPas}}Do
+	Create(ctx context.Context, data *dto.{{.NameEnPas}}AddReq) error
+	Delete(ctx context.Context, ids []uint) error
+	Update(ctx context.Context, data *dto.{{.NameEnPas}}UpdateReq) error
+	List(ctx context.Context, data *dto.{{.NameEnPas}}SearchReq) ([]dto.{{.NameEnPas}}, int64, error)
 }

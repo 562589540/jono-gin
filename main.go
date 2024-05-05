@@ -6,6 +6,7 @@ import (
 	_ "github.com/562589540/jono-gin/internal/app/common/router"
 	"github.com/562589540/jono-gin/internal/app/common/validate"
 	_ "github.com/562589540/jono-gin/internal/app/system/router"
+	_ "github.com/562589540/jono-gin/internal/tasks"
 	"github.com/gin-gonic/gin"
 )
 

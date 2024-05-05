@@ -15,12 +15,12 @@ type Observable struct {
 	observers []Observer
 }
 
-// 注册
+// RegisterObserver 注册
 func (o *Observable) RegisterObserver(observer Observer) {
 	o.observers = append(o.observers, observer)
 }
 
-// 移除
+// RemoveObserver 移除
 func (o *Observable) RemoveObserver(observer Observer) {
 	// 实现观察者的移除逻辑
 	for i, obs := range o.observers {
@@ -31,7 +31,7 @@ func (o *Observable) RemoveObserver(observer Observer) {
 	}
 }
 
-// 通知
+// NotifyObservers 通知
 func (o *Observable) NotifyObservers() {
 	for _, observer := range o.observers {
 		observer.Update(o)

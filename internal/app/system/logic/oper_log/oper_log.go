@@ -3,7 +3,7 @@ package oper_log
 import (
 	"context"
 	"fmt"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -35,16 +35,19 @@ func (m *Service) Create(ctx context.Context, data *dto.OperLogAddReq) error {
 }
 
 func (m *Service) Delete(ctx context.Context, ids []uint) error {
-	_, err := m.Dao(ctx).Where(dal.OperLog.ID.In(ids...)).Delete()
+	info, err := m.Dao(ctx).Where(dal.OperLog.ID.In(ids...)).Delete()
 	if err != nil {
 		return err
+	}
+	if info.RowsAffected == 0 {
+		return fmt.Errorf(constants.DeleteError)
 	}
 	return nil
 }
 
 func (m *Service) DeleteAll(ctx context.Context) error {
-	ol := dal.OperLog
-	_, err := ol.WithContext(ctx).Where(ol.ID.Gt(0)).Delete()
+	dao := dal.OperLog
+	_, err := dao.WithContext(ctx).Where(dao.ID.Gt(0)).Delete()
 	if err != nil {
 		return err
 	}

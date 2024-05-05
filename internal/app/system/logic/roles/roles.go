@@ -3,7 +3,7 @@ package roles
 import (
 	"context"
 	"fmt"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -49,27 +49,27 @@ func (m *Service) Update(ctx context.Context, data *dto.RolesUpdateReq) error {
 	if data.ID == 1 {
 		return fmt.Errorf("禁止修改最高权限管理员")
 	}
-	r := dal.Roles
-	mModel, err := r.WithContext(ctx).Where(r.ID.Eq(data.ID)).First()
+	dao := dal.Roles
+	mModel, err := dao.WithContext(ctx).Where(dao.ID.Eq(data.ID)).First()
 	if err != nil {
 		return fmt.Errorf(constants.NoDataFound)
 	}
-	return r.WithContext(ctx).Save(data.ToModel(mModel, false))
+	return dao.WithContext(ctx).Save(data.ToModel(mModel, false))
 }
 
 func (m *Service) List(ctx context.Context, search *dto.RolesSearchReq) ([]dto.Role, int64, error) {
-	r := dal.Roles
-	q := r.WithContext(ctx)
+	dao := dal.Roles
+	q := dao.WithContext(ctx)
 	if search.Code != "" {
-		q = q.Where(r.Code.Eq(search.Code))
+		q = q.Where(dao.Code.Eq(search.Code))
 	}
 
 	if search.Name != "" {
-		q = q.Where(r.Name.Eq(search.Name))
+		q = q.Where(dao.Name.Eq(search.Name))
 	}
 
 	if search.Status != "" {
-		q = q.Where(r.Status.Is(search.Status == "1"))
+		q = q.Where(dao.Status.Is(search.Status == "1"))
 	}
 
 	list, total, err := q.FindByPage(search.GetOffset(), search.GetLimit())
@@ -91,10 +91,10 @@ func (m *Service) UpdateRoleMenusAuth(ctx context.Context, data *dto.RolesPowerR
 		return fmt.Errorf("禁止修改最高权限管理员")
 	}
 	return dal.Q.Transaction(func(tx *dal.Query) error {
-		r := tx.Roles
+		dao := tx.Roles
 		mRolesMode := &model.Roles{}
 		mRolesMode.ID = data.ID
-		if err := r.Menus.WithContext(ctx).Model(mRolesMode).Clear(); err != nil {
+		if err := dao.Menus.WithContext(ctx).Model(mRolesMode).Clear(); err != nil {
 			return err
 		}
 		if len(data.IDS) > 0 {
@@ -103,7 +103,7 @@ func (m *Service) UpdateRoleMenusAuth(ctx context.Context, data *dto.RolesPowerR
 				return err
 			}
 			// 为角色添加新的菜单关系
-			if err = r.Menus.WithContext(ctx).Model(mRolesMode).Append(menus...); err != nil {
+			if err = dao.Menus.WithContext(ctx).Model(mRolesMode).Append(menus...); err != nil {
 				return err
 			}
 		}
@@ -113,10 +113,10 @@ func (m *Service) UpdateRoleMenusAuth(ctx context.Context, data *dto.RolesPowerR
 
 // GetRoleMenuIds 获取角色的菜单Ids
 func (m *Service) GetRoleMenuIds(ctx context.Context, id uint) ([]uint, error) {
-	r := dal.Roles
+	dao := dal.Roles
 	mRolesMode := &model.Roles{}
 	mRolesMode.ID = id
-	menus, err := r.Menus.WithContext(ctx).Model(mRolesMode).Find()
+	menus, err := dao.Menus.WithContext(ctx).Model(mRolesMode).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -129,8 +129,8 @@ func (m *Service) GetRoleMenuIds(ctx context.Context, id uint) ([]uint, error) {
 
 // GetAllRoleList 获取所有角色信息 用户菜单使用的
 func (m *Service) GetAllRoleList(ctx context.Context) ([]dto.Role, error) {
-	r := dal.Roles
-	mModeList, err := r.WithContext(ctx).Where(r.Status.Is(true)).Find()
+	dao := dal.Roles
+	mModeList, err := dao.WithContext(ctx).Where(dao.Status.Is(true)).Find()
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,10 @@ package dto
 import "github.com/mileusna/useragent"
 
 type AdminLoginReq struct {
-	UserName string `json:"username,omitempty" binding:"required" m:"账号不能为空"`
-	Password string `json:"password" binding:"password" m:"密码格式应为8-18位数字、字母、符号的任意两种组合"`
+	UserName  string `json:"username,omitempty" binding:"required" m:"账号不能为空"`
+	Password  string `json:"password" binding:"password" m:"密码格式应为8-18位数字、字母、符号的任意两种组合"`
+	Captcha   string `json:"captcha" binding:"required" m:"验证码不能为空"`
+	CaptchaId string `json:"captchaId" binding:"required" m:"验证码ID不能为空"`
 }
 
 type AdminLoginRes struct {

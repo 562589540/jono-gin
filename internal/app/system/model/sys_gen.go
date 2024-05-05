@@ -2,15 +2,15 @@ package model
 
 import (
 	"encoding/json"
-	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate"
+	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate/pkg"
 	"gorm.io/datatypes"
 	"time"
 )
 
 type GenDate struct {
-	FieldsInfo []*gtemplate.TableFields `json:"fieldsInfo" binding:"required"`
-	BaseInfo   *gtemplate.BaseInfo      `json:"baseInfo" binding:"required"`
-	GenInfo    *gtemplate.GenInfo       `json:"genInfo" binding:"required"`
+	FieldsInfo []*pkg.TableFields `json:"fieldsInfo" binding:"required"`
+	BaseInfo   *pkg.BaseInfo      `json:"baseInfo" binding:"required"`
+	GenInfo    *pkg.GenInfo       `json:"genInfo" binding:"required"`
 }
 
 type TableInfo struct {
@@ -74,7 +74,7 @@ func (g *SysGen) TableName() string {
 }
 
 // SerializeFieldsInfo 序列化 FieldsInfo 数据为 JSON 格式
-func (g *SysGen) SerializeFieldsInfo(data []*gtemplate.TableFields) error {
+func (g *SysGen) SerializeFieldsInfo(data []*pkg.TableFields) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -84,14 +84,14 @@ func (g *SysGen) SerializeFieldsInfo(data []*gtemplate.TableFields) error {
 }
 
 // DeserializeFieldsInfo 反序列化 JSON 数据为 FieldsInfo 结构
-func (g *SysGen) DeserializeFieldsInfo() ([]*gtemplate.TableFields, error) {
-	var data []*gtemplate.TableFields
+func (g *SysGen) DeserializeFieldsInfo() ([]*pkg.TableFields, error) {
+	var data []*pkg.TableFields
 	err := json.Unmarshal(g.FieldsInfo, &data)
 	return data, err
 }
 
 // SerializeBaseInfo 序列化 BaseInfo 数据为 JSON 格式
-func (g *SysGen) SerializeBaseInfo(data *gtemplate.BaseInfo) error {
+func (g *SysGen) SerializeBaseInfo(data *pkg.BaseInfo) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -101,14 +101,14 @@ func (g *SysGen) SerializeBaseInfo(data *gtemplate.BaseInfo) error {
 }
 
 // DeserializeBaseInfo 反序列化 JSON 数据为 BaseInfo 结构
-func (g *SysGen) DeserializeBaseInfo() (*gtemplate.BaseInfo, error) {
-	var data *gtemplate.BaseInfo
+func (g *SysGen) DeserializeBaseInfo() (*pkg.BaseInfo, error) {
+	var data *pkg.BaseInfo
 	err := json.Unmarshal(g.BaseInfo, &data)
 	return data, err
 }
 
 // SerializeGenInfo 序列化 GenInfo 数据为 JSON 格式
-func (g *SysGen) SerializeGenInfo(data *gtemplate.GenInfo) error {
+func (g *SysGen) SerializeGenInfo(data *pkg.GenInfo) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -118,8 +118,10 @@ func (g *SysGen) SerializeGenInfo(data *gtemplate.GenInfo) error {
 }
 
 // DeserializeGenInfo 反序列化 JSON 数据为 GenInfo 结构
-func (g *SysGen) DeserializeGenInfo() (*gtemplate.GenInfo, error) {
-	var data *gtemplate.GenInfo
+func (g *SysGen) DeserializeGenInfo() (*pkg.GenInfo, error) {
+	var data *pkg.GenInfo
 	err := json.Unmarshal(g.GenInfo, &data)
 	return data, err
 }
+
+func (g *SysGen) AllowScan() {}

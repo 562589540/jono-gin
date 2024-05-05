@@ -1,165 +1,170 @@
 package gscheduler
 
 import (
-	"fmt"
+	"github.com/562589540/jono-gin/ghub/glibrary/geventbus"
+	"github.com/562589540/jono-gin/ghub/glibrary/gjob"
+	"github.com/562589540/jono-gin/internal/constants"
+	"github.com/robfig/cron/v3"
+	"log"
 	"sync"
-	"time"
 )
 
-type TaskState string
+type ExecuteType int
 
 const (
-	Waiting   TaskState = "waiting"
-	Running   TaskState = "running"
-	Completed TaskState = "completed"
-	Cancelled TaskState = "cancelled"
+	Repeat ExecuteType = iota + 1
+	Once
 )
 
-// TaskFunc 定义任务执行的函数类型。
-type TaskFunc func()
-
-// ScheduledTask 表示一个计划中的任务。
-type ScheduledTask struct {
-	ID       string
-	Interval time.Duration
-	Task     TaskFunc
-	Repeat   bool
-	ticker   *time.Ticker
-	quit     chan struct{}
-	State    TaskState
-}
-
-// TaskScheduler 管理所有定时任务的调度器。
-type TaskScheduler struct {
-	tasks map[string]*ScheduledTask
-	mu    sync.Mutex
-}
-
 var (
-	instance *TaskScheduler
+	instance *TaskRunner
 	once     sync.Once
 )
 
+// Task 代表数据库中存储的任务
+type Task struct {
+	ID            int         // 任务ID
+	TaskFunName   string      // 方法名
+	TaskFunParams string      // 任务需要的参数
+	ExecuteType   ExecuteType // 执行类型：1表示重复执行，2表示执行一次
+	CronExpr      string      // Cron 表达式
+}
+
+// TaskRunner 用于管理和执行所有的cron任务
+type TaskRunner struct {
+	Cron    *cron.Cron           // cron实例
+	Entries map[int]cron.EntryID // 任务ID和cron.EntryID的映射
+	lock    sync.RWMutex         // 添加读写锁
+}
+
+// cron.WithLogger(ghub.Log)
+
 // GetInstance 返回TaskScheduler的单例实例。
-func GetInstance() *TaskScheduler {
+func GetInstance() *TaskRunner {
 	once.Do(func() {
-		instance = &TaskScheduler{
-			tasks: make(map[string]*ScheduledTask),
+		c := cron.New(cron.WithSeconds()) // 初始化cron实例，包括秒
+		instance = &TaskRunner{
+			Cron:    c,
+			Entries: make(map[int]cron.EntryID),
 		}
 	})
 	return instance
 }
 
-// ScheduleTask 添加并启动一个定时任务。任务可以是重复的或一次性的。
-func (s *TaskScheduler) ScheduleTask(id string, interval time.Duration, task TaskFunc, repeat bool) string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// Start 启动Cron服务
+func (t *TaskRunner) Start() {
+	t.Cron.Start()
+}
 
-	// 确保任务ID是唯一的
-	if _, exists := s.tasks[id]; exists {
-		return id // 如果ID已存在，直接返回
-	}
+// Stop 停止Cron服务
+func (t *TaskRunner) Stop() {
+	t.Cron.Stop()
+}
 
-	newTask := &ScheduledTask{
-		ID:       id,
-		Interval: interval,
-		Task:     task,
-		Repeat:   repeat,
-		quit:     make(chan struct{}),
-		State:    Waiting,
-	}
-
-	if repeat {
-		newTask.ticker = time.NewTicker(newTask.Interval)
-		go func() {
-			newTask.State = Running
-			defer func() {
-				newTask.State = Completed
-				if r := recover(); r != nil {
-					fmt.Println("Recovered in task:", r)
-					newTask.State = Cancelled
-				}
-			}()
-			for {
-				select {
-				case <-newTask.ticker.C:
-					newTask.Task()
-				case <-newTask.quit:
-					newTask.ticker.Stop()
-					newTask.State = Cancelled
-					return
-				}
-			}
-		}()
-	} else {
-		// 一次性定时任务完成后自动移除
-		time.AfterFunc(newTask.Interval, func() {
-			newTask.State = Running
-			newTask.Task()
-			newTask.State = Completed
-			s.RemoveTask(newTask.ID)
+// AddTask 添加新任务
+func (t *TaskRunner) AddTask(task Task) error {
+	t.lock.Lock() // 写锁定
+	defer t.lock.Unlock()
+	var id cron.EntryID
+	var err error
+	if task.ExecuteType == Repeat { // 重复执行
+		id, err = t.Cron.AddFunc(task.CronExpr, func() {
+			executeTask(task) // 执行任务的逻辑
+		})
+	} else if task.ExecuteType == Once { // 执行一次
+		id, err = t.Cron.AddFunc(task.CronExpr, func() {
+			executeTask(task)     // 执行任务的逻辑
+			t.RemoveTask(task.ID) // 执行后立即删除任务
 		})
 	}
-
-	s.tasks[id] = newTask
-	return id
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	t.Entries[task.ID] = id
+	return nil
 }
 
-// StopTask 停止并移除指定ID的任务。
-func (s *TaskScheduler) StopTask(id string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if task, exists := s.tasks[id]; exists {
-		close(task.quit)
-		delete(s.tasks, id)
+// RemoveTask 删除任务
+func (t *TaskRunner) RemoveTask(taskID int) {
+	t.lock.Lock() // 写锁定
+	defer t.lock.Unlock()
+	if entryID, ok := t.Entries[taskID]; ok {
+		t.Cron.Remove(entryID)
+		delete(t.Entries, taskID)
 	}
 }
 
-// RemoveTask 从调度器中移除任务。
-func (s *TaskScheduler) RemoveTask(id string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if _, exists := s.tasks[id]; exists {
-		delete(s.tasks, id)
-	}
+// PauseTask 暂停任务
+func (t *TaskRunner) PauseTask(taskID int) {
+	// 暂停实际上是移除现有任务
+	t.RemoveTask(taskID)
 }
 
-// StopAll 停止并移除所有任务。
-func (s *TaskScheduler) StopAll() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	for id, task := range s.tasks {
-		close(task.quit)
-		delete(s.tasks, id)
+// ResumeTask 恢复任务
+func (t *TaskRunner) ResumeTask(task Task) error {
+	// 恢复任务实际上是重新添加任务
+	err := t.AddTask(task)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
+	return nil
 }
 
-// GetTaskState 返回指定任务的状态。
-func (s *TaskScheduler) GetTaskState(id string) (TaskState, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if task, exists := s.tasks[id]; exists {
-		return task.State, true
-	}
-	return "", false // 返回空字符串表示未找到任务
+// Once 执行一次
+func (t *TaskRunner) Once(task Task) {
+	executeTask(task)
 }
 
-//s := gscheduler.GetInstance()
+type TaskResult struct {
+	Task
+	Error error
+}
+
+// executeTask 执行具体的任务
+func executeTask(task Task) {
+	// 这里应该根据 task.TaskFunName 和 task.TaskFunParams 调用相应的方法
+	gjob.GetInstance(100).Submit(func() {
+		err := callFunc(task.TaskFunName, task.TaskFunParams)
+		geventbus.GetInstance().Publish(constants.TaskLog, TaskResult{
+			Task:  task,
+			Error: err,
+		})
+	})
+}
+
+// IsValidCronExpression 检查给定的 Cron 表达式是否有效
+func IsValidCronExpression(expr string) bool {
+	// 使用带有所有选项的解析器，包括秒
+	parser := cron.NewParser(
+		cron.Second | // 支持秒
+			cron.Minute | // 支持分钟
+			cron.Hour | // 支持小时
+			cron.Dom | // 支持月中的某天
+			cron.Month | // 支持月份
+			cron.DowOptional | // 支持可选的星期几
+			cron.Descriptor, // 支持特定描述符
+	)
+	if _, err := parser.Parse(expr); err != nil {
+		return false
+	}
+	return true
+}
+
 //
-//taskID := s.ScheduleTask("task1", 2*time.Second, func() {
-//    fmt.Println("Task 1 executed")
-//}, true)
+//type Config struct {
+//	WithSeconds bool
+//}
 //
-//// 获取并打印任务状态
-//state, _ := s.GetTaskState(taskID)
-//fmt.Println("Task State:", state)
-//
-//// 运行一段时间后停止任务，并检查状态
-//time.Sleep(5 * time.Second)
-//s.StopTask(taskID)
-//state, _ = s.GetTaskState(taskID)
-//fmt.Println("Task State after stopping:", state)
+//func NewTaskRunner(config *Config) *TaskRunner {
+//	var options []cron.Option
+//	if config.WithSeconds {
+//		options = append(options, cron.WithSeconds())
+//	}
+//	c := cron.New(options...)
+//	return &TaskRunner{
+//		Cron:    c,
+//		Entries: make(map[int]cron.EntryID),
+//	}
+//}

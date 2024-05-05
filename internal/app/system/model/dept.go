@@ -34,3 +34,5 @@ func (m *Dept) GetStatus() *int {
 	}
 	return &constants.StatusFalse
 }
+
+func (m *Dept) AllowScan() {}

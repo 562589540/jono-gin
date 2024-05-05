@@ -17,3 +17,5 @@ type DictType struct {
 	UpdatedAt time.Time  `gorm:"column:updated_at;type:datetime;comment:修改日期" json:"updated_at"` // 修改日期
 	DictData  []DictData `gorm:"foreignKey:DictType;references:DictType"`
 }
+
+func (m *DictType) AllowScan() {}

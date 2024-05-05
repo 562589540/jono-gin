@@ -14,9 +14,9 @@ type RedisClient struct {
 // InitRedis 初始化Redis客户端
 func InitRedis() (*RedisClient, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:         Cfg.Redis.URL,      // Redis地址
-		Password:     Cfg.Redis.Password, // Redis密码
-		DB:           Cfg.Redis.DB,       // Redis数据库
+		Addr:         cfg.Redis.URL,      // Redis地址
+		Password:     cfg.Redis.Password, // Redis密码
+		DB:           cfg.Redis.DB,       // Redis数据库
 		DialTimeout:  5 * time.Second,    // 连接超时时间
 		ReadTimeout:  3 * time.Second,    // 读取超时时间
 		WriteTimeout: 3 * time.Second,    // 写入超时时间
@@ -149,6 +149,7 @@ func (r *RedisClient) BatchSet(ctx context.Context, pairs map[string]any) error 
 	return err
 }
 
+// GetExpireDuration 获取过期时间
 func (r *RedisClient) GetExpireDuration(ctx context.Context, key string) (time.Duration, error) {
 	return r.client.TTL(ctx, key).Result()
 }

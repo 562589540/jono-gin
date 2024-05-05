@@ -27,6 +27,7 @@ path:
   avatarPath: "avatar"          #头像目录
 system:
   notCheckAuthAdminIds: [3]  #无需验证后台权限的用户id
+  nodeNumber: 1              #分布式编号
 casbin:
   modelFile: "./resource/casbin/rbac_model.conf"
   policyFile: "./resource/casbin/rbac_policy.csv"

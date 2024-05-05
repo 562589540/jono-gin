@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/562589540/jono-gin/ghub"
-	"github.com/562589540/jono-gin/ghub/gbootstrap"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os/signal"
@@ -54,7 +53,7 @@ func (g *GinHub) Setup(publicUrl, protectedUrl string, fn func(*gin.RouterGroup)
 	//集成Swagger
 	//g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	//设置静态目录
-	g.engine.Static(gbootstrap.Cfg.Path.Static, gbootstrap.Cfg.Path.ResourcePath)
+	g.engine.Static(ghub.Cfg.Path.Static, ghub.Cfg.Path.ResourcePath)
 	//定义公开api
 	g.publicRouter = g.engine.Group(publicUrl)
 	//定义鉴权api
@@ -82,12 +81,12 @@ func (g *GinHub) Launch() {
 	defer cancel()
 
 	g.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", gbootstrap.Cfg.Server.Port),
+		Addr:    fmt.Sprintf(":%d", ghub.Cfg.Server.Port),
 		Handler: g.engine,
 	}
 
 	go func() {
-		ghub.Log.Infof("========================gin服务监听端口: %d=====================\n", gbootstrap.Cfg.Server.Port)
+		ghub.Log.Infof("========================gin服务监听端口: %d=====================\n", ghub.Cfg.Server.Port)
 		if err := g.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			ghub.Log.Error("gin服务启动失败:%s", err.Error())
 			return

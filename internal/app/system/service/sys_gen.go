@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate"
+	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate/pkg"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 )
@@ -15,7 +15,7 @@ type IGenService interface {
 	List(ctx context.Context, req dto.TableInfoSearchReq) ([]dto.GenListRes, int64, error)
 	TableList(ctx context.Context, req dto.TableInfoSearchReq) ([]dto.TableInfoRes, int64, error)
 	TableInfo(ctx context.Context, req dto.TableInfoSearchReq) ([]model.TableColumn, error)
-	TableDetails(ctx context.Context, req dto.TableInfoSearchReq) (*gtemplate.BaseInfo, error)
-	GenTableFields(ctx context.Context, modeList []model.TableColumn) []*gtemplate.TableFields
+	TableDetails(ctx context.Context, req dto.TableInfoSearchReq) (*pkg.BaseInfo, error)
+	GenTableFields(ctx context.Context, modeList []model.TableColumn) []*pkg.TableFields
 	ImportDate(ctx context.Context, req model.GenDate) error
 }

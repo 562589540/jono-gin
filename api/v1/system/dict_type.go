@@ -58,3 +58,25 @@ func (m DictTypeApi) Delete(c *gin.Context, req gdto.IDSReq) (any, error) {
 		Message: "删除成功",
 	}, nil
 }
+
+func (m DictTypeApi) GetDictData(c *gin.Context, req dto.DictGetReq) (any, error) {
+	data, err := m.dictTypeService.GetDictData(c, &req)
+	if err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Message: "获取成功",
+		Data:    data,
+	}, nil
+}
+
+func (m DictTypeApi) GetDictsData(c *gin.Context, req dto.DictBatchGetReq) (any, error) {
+	data, err := m.dictTypeService.BatchGetDictData(c, &req)
+	if err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Message: "获取成功",
+		Data:    data,
+	}, nil
+}

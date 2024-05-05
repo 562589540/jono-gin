@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/562589540/jono-gin/ghub"
 	"github.com/562589540/jono-gin/ghub/gutils"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/logic/bizctx"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/gin-gonic/gin"
@@ -50,7 +50,7 @@ func PostRequestLogger() gin.HandlerFunc {
 				Summary:  extract(c.Request.URL.Path, 1),
 				Status:   s,
 			})
-			ghub.ErrLog(err)
+			gutils.CheckError(err)
 		})
 	}
 }

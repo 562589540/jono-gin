@@ -6,15 +6,19 @@ import (
 	"time"
 )
 
+// SystemConfig 系统配置
 type SystemConfig struct {
 	NotCheckAuthAdminIds []uint `mapstructure:"notCheckAuthAdminIds"`
+	NodeNumber           int64  `mapstructure:"nodeNumber"`
 }
 
+// CasbinConfig casbin权限配置
 type CasbinConfig struct {
 	ModelFile  string `mapstructure:"modelFile"`
 	PolicyFile string `mapstructure:"policyFile"`
 }
 
+// PathConfig 本地路径配置
 type PathConfig struct {
 	Static       string `mapstructure:"static"`
 	ResourcePath string `mapstructure:"resourcePath"`
@@ -22,10 +26,12 @@ type PathConfig struct {
 	AvatarPath   string `mapstructure:"avatarPath"`
 }
 
+// ServerConfig 服务配置
 type ServerConfig struct {
 	Port int `mapstructure:"port"`
 }
 
+// LogConfig 日志配置
 type LogConfig struct {
 	Output     string `mapstructure:"output"`
 	MaxSize    int    `mapstructure:"maxSize"`
@@ -33,22 +39,26 @@ type LogConfig struct {
 	MaxAge     int    `mapstructure:"maxAge"`
 }
 
+// ModeConfig 环境配置
 type ModeConfig struct {
 	Develop bool `mapstructure:"develop"`
 }
 
+// DBConfig mysql配置
 type DBConfig struct {
 	DSN         string `mapstructure:"dsn"`
 	MaxIdleCons int    `mapstructure:"maxIdleCons"`
 	MaxOpenCons int    `mapstructure:"maxOpenCons"`
 }
 
+// RedisConfig redis 配置
 type RedisConfig struct {
 	URL      string `mapstructure:"url"`
 	Password string `mapstructure:"password"`
 	DB       int    `mapstructure:"db"`
 }
 
+// JwtConfig jwt配置
 type JwtConfig struct {
 	TokenExpire        time.Duration `mapstructure:"tokenExpire"`
 	RefreshTokenExpire time.Duration `mapstructure:"refreshTokenExpire"`
@@ -67,14 +77,15 @@ type Configuration struct {
 	System SystemConfig `mapstructure:"system"`
 }
 
-var Cfg *Configuration
+var cfg *Configuration
 
-func InitConfig() {
+func InitConfig() (*Configuration, error) {
 	viper.SetConfigName("setting")
 	viper.SetConfigType("yml")
 	viper.AddConfigPath("./config/")
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Printf("Error reading config file, %s", err)
+		return nil, err
 	}
 	// 设置日志相关配置项的默认值
 	viper.SetDefault("server.port", 8080)               // 默认服务端口号
@@ -88,12 +99,11 @@ func InitConfig() {
 	viper.SetDefault("path.uploadsPath", "uploads")     // 本地上传目录
 	viper.SetDefault("path.avatarPath", "avatar")       // 头像保存目录
 	viper.SetDefault("path.static", "static")           // 静态跟
-
-	var cfg Configuration
-	err := viper.Unmarshal(&cfg)
+	temp := Configuration{}
+	err := viper.Unmarshal(&temp)
 	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v\n", err)
-		return
+		return nil, err
 	}
-	Cfg = &cfg
+	cfg = &temp
+	return cfg, nil
 }

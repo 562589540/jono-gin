@@ -19,19 +19,47 @@ type LoginApi struct {
 	adminService      service.IAdminService
 	tokenService      service.ITokenService
 	userOnlineService service.IUserOnlineService
+	captchaService    service.ICaptcha
 }
 
-func NewLoginApi(loginService service.ILoginService, loginLogService service.ILoginLogService, adminService service.IAdminService, tokenService service.ITokenService, userOnlineService service.IUserOnlineService) *LoginApi {
+func NewLoginApi(captchaService service.ICaptcha, loginService service.ILoginService, loginLogService service.ILoginLogService, adminService service.IAdminService, tokenService service.ITokenService, userOnlineService service.IUserOnlineService) *LoginApi {
 	return &LoginApi{
 		loginService:      loginService,
 		loginLogService:   loginLogService,
 		adminService:      adminService,
 		tokenService:      tokenService,
 		userOnlineService: userOnlineService,
+		captchaService:    captchaService,
 	}
 }
 
+// Captcha 做成通用api较好
+func (m LoginApi) Captcha(c *gin.Context, _ gdto.EmptyReq) (any, error) {
+	id, b64s, _, err := m.captchaService.GetVerifyImgString(c)
+	if err != nil {
+		return nil, err
+	}
+	return gres.Response{
+		Success: true,
+		Data: gdto.CaptchaRes{
+			ID:   id,
+			B64s: b64s,
+		},
+	}, nil
+}
+
+func (m LoginApi) CheckCaptcha(_ *gin.Context, req gdto.CheckCaptchaReq) (any, error) {
+	return gres.Response{
+		Data: gdto.CheckCaptchaRes{
+			Success: m.captchaService.VerifyString(req.ID, req.Captcha),
+		},
+	}, nil
+}
+
 func (m LoginApi) Login(c *gin.Context, req *dto.AdminLoginReq) (any, error) {
+	if !m.captchaService.VerifyString(req.CaptchaId, req.Captcha) {
+		return nil, fmt.Errorf("验证码错误")
+	}
 	var (
 		token  string
 		rToken string

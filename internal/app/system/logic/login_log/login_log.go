@@ -2,12 +2,14 @@ package login_log
 
 import (
 	"context"
+	"fmt"
 	"github.com/562589540/jono-gin/ghub"
 	"github.com/562589540/jono-gin/ghub/gutils"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
+	"github.com/562589540/jono-gin/internal/constants"
 	"time"
 )
 
@@ -39,17 +41,18 @@ func (m *Service) Create(ctx context.Context, param *dto.LoginParam) {
 		mModel.System = param.Ua.OS
 		mModel.LoginTime = time.Now()
 		err := m.Dao(ctx).Create(&mModel)
-		if err != nil {
-			ghub.ErrLog(err)
-		}
+		gutils.CheckError(err)
 	})
 }
 
 func (m *Service) Delete(ctx context.Context, ids []uint) error {
-	l := dal.LoginLog
-	_, err := l.WithContext(ctx).Where(l.ID.In(ids...)).Delete()
+	dao := dal.LoginLog
+	info, err := dao.WithContext(ctx).Where(dao.ID.In(ids...)).Delete()
 	if err != nil {
 		return err
+	}
+	if info.RowsAffected == 0 {
+		return fmt.Errorf(constants.DeleteError)
 	}
 	return nil
 }
@@ -79,8 +82,8 @@ func (m *Service) List(ctx context.Context, search *dto.LoginLogSearchReq) ([]dt
 }
 
 func (m *Service) DeleteAll(ctx context.Context) error {
-	l := dal.LoginLog
-	_, err := l.WithContext(ctx).Where(l.ID.Gt(0)).Delete()
+	dao := dal.LoginLog
+	_, err := dao.WithContext(ctx).Where(dao.ID.Gt(0)).Delete()
 	if err != nil {
 		return err
 	}

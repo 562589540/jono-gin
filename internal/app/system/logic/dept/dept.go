@@ -3,7 +3,7 @@ package dept
 import (
 	"context"
 	"fmt"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -44,17 +44,17 @@ func (m *Service) Delete(ctx context.Context, id uint) error {
 }
 
 func (m *Service) Update(ctx context.Context, data *dto.DeptAddReq) error {
-	dp := dal.Dept
-	mModel, err := dp.WithContext(ctx).Where(dp.ID.Eq(data.ID)).First()
+	dao := dal.Dept
+	mModel, err := dao.WithContext(ctx).Where(dao.ID.Eq(data.ID)).First()
 	if err != nil {
 		return fmt.Errorf(constants.NoDataFound)
 	}
-	return dp.WithContext(ctx).Save(data.ToModel(mModel))
+	return dao.WithContext(ctx).Save(data.ToModel(mModel))
 }
 
 func (m *Service) List(ctx context.Context, _ *dto.DeptSearchReq) ([]dto.Dept, int64, error) {
-	dp := dal.Dept
-	list, err := dp.WithContext(ctx).Order(dp.Sort.Asc()).Find()
+	dao := dal.Dept
+	list, err := dao.WithContext(ctx).Order(dao.Sort.Asc()).Find()
 	if err != nil {
 		return nil, 0, err
 	}

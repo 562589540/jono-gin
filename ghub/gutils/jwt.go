@@ -2,13 +2,13 @@ package gutils
 
 import (
 	"fmt"
-	"github.com/562589540/jono-gin/ghub/gbootstrap"
+	"github.com/562589540/jono-gin/ghub"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )
 
 func getSigningKey() []byte {
-	return []byte(gbootstrap.Cfg.Jwt.SigningKey)
+	return []byte(ghub.Cfg.Jwt.SigningKey)
 }
 
 type JwtCostClaims struct {
@@ -24,7 +24,7 @@ func GenerateToken(id uint, name string) (string, error) {
 		Name: name,
 		RegisteredClaims: jwt.RegisteredClaims{
 			//token过期时间
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(gbootstrap.Cfg.Jwt.TokenExpire * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ghub.Cfg.Jwt.TokenExpire * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   "Token",
 		},
@@ -40,7 +40,7 @@ func GenerateRefreshToken(id uint, name string) (string, error) {
 		ID:   id,
 		Name: name,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(gbootstrap.Cfg.Jwt.RefreshTokenExpire * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ghub.Cfg.Jwt.RefreshTokenExpire * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   "RefreshToken",
 		},

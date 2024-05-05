@@ -3,7 +3,7 @@ package gutils
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/562589540/jono-gin/ghub/gbootstrap"
+	"github.com/562589540/jono-gin/ghub"
 	"github.com/google/uuid"
 	"os"
 	"path/filepath"
@@ -15,7 +15,7 @@ import (
 func SaveBase64Image(b64data string, baseUploadDir string) (string, error) {
 	if baseUploadDir == "" {
 		//使用默认路径
-		baseUploadDir = filepath.Join(gbootstrap.Cfg.Path.ResourcePath, gbootstrap.Cfg.Path.UploadsPath, gbootstrap.Cfg.Path.AvatarPath)
+		baseUploadDir = filepath.Join(ghub.Cfg.Path.ResourcePath, ghub.Cfg.Path.UploadsPath, ghub.Cfg.Path.AvatarPath)
 	}
 	base64Data := strings.Split(b64data, ",")[1]
 	decoded, err := base64.StdEncoding.DecodeString(base64Data)
@@ -46,11 +46,11 @@ func SaveBase64Image(b64data string, baseUploadDir string) (string, error) {
 	}
 
 	// 计算相对路径
-	relPath, err := filepath.Rel(gbootstrap.Cfg.Path.ResourcePath, filename)
+	relPath, err := filepath.Rel(ghub.Cfg.Path.ResourcePath, filename)
 	if err != nil {
 		return "", err
 	}
 	// 替换路径分隔符
 	relPath = filepath.ToSlash(relPath)
-	return filepath.Join(gbootstrap.Cfg.Path.Static, relPath), nil
+	return filepath.Join(ghub.Cfg.Path.Static, relPath), nil
 }

@@ -14,3 +14,5 @@ type UserOnline struct {
 	System    string    `gorm:"size:50;comment:'操作系统'" json:"system"`
 	LoginTime time.Time `gorm:"comment:'登陆时间'" json:"loginTime"`
 }
+
+func (m *UserOnline) AllowScan() {}

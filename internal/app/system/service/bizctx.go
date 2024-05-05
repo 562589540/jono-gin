@@ -1,12 +1,12 @@
 package service
 
 import (
+	"context"
 	"github.com/562589540/jono-gin/internal/app/common/model"
 	sysModel "github.com/562589540/jono-gin/internal/app/system/model"
-	"github.com/gin-gonic/gin"
 )
 
 type IContextService interface {
-	GetLoginUser(c *gin.Context) (*model.LoginUser, error)
-	GetLoginUserModel(c *gin.Context) (*sysModel.Admin, error)
+	GetLoginUser(ctx context.Context) (*model.LoginUser, error)
+	GetLoginUserModel(ctx context.Context) (*sysModel.Admin, error)
 }

@@ -16,3 +16,5 @@ type OperLog struct {
 	Status    int    `gorm:"comment:状态" json:"status"`
 	CreatedAt time.Time
 }
+
+func (m *OperLog) AllowScan() {}

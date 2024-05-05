@@ -1,9 +1,9 @@
 package system
 
 import (
-	"github.com/562589540/jono-gin/ghub"
 	"github.com/562589540/jono-gin/ghub/glibrary/gdto"
 	"github.com/562589540/jono-gin/ghub/glibrary/gres"
+	"github.com/562589540/jono-gin/ghub/gutils"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/service"
 	"github.com/gin-gonic/gin"
@@ -20,7 +20,7 @@ func NewOperLogApi(operLogService service.IOperLogService) *OperLogApi {
 }
 
 func (m OperLogApi) List(c *gin.Context, req dto.OperLogSearchReq) (any, error) {
-	req.CreatedAt, _ = ghub.ParseTimeInterval(c, "operatingTime")
+	req.CreatedAt, _ = gutils.ParseTimeInterval(c, "operatingTime")
 	list, total, err := m.operLogService.List(c, &req)
 	if err != nil {
 		return nil, err

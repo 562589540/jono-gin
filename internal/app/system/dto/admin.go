@@ -4,7 +4,7 @@ import (
 	"github.com/562589540/jono-gin/ghub/glibrary/gdto"
 	"github.com/562589540/jono-gin/ghub/gutils"
 	"github.com/562589540/jono-gin/internal/app/system/model"
-	"github.com/562589540/jono-gin/internal/constants"
+	"github.com/562589540/jono-gin/internal/constants/enum"
 )
 
 type AdminAddReq struct {
@@ -58,14 +58,14 @@ func (m AdminUpdateReq) ToModel(mModel *model.Admin) *model.Admin {
 	return mModel
 }
 
-func (m AdminUpdateReq) GetSex() constants.Gender {
+func (m AdminUpdateReq) GetSex() enum.Gender {
 	if m.Sex == 0 {
-		return constants.Male
+		return enum.Male
 	}
 	if m.Sex == 1 {
-		return constants.Female
+		return enum.Female
 	}
-	return constants.Other
+	return enum.Other
 }
 
 func (m AdminUpdateReq) GetDeptId() *uint {

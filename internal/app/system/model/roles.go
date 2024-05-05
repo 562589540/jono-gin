@@ -23,3 +23,5 @@ func (m *Roles) GetStatus() *int {
 	}
 	return &constants.StatusFalse
 }
+
+func (m *Roles) AllowScan() {}

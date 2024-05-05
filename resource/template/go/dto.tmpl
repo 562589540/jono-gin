@@ -6,16 +6,18 @@ import (
 
 type {{.NameEnPas}}SearchReq struct {
 	gdto.PaginateReq        //分页
+{{ customSearch }}
 }
 
 type {{.NameEnPas}}UpdateReq struct {
-
+	ID uint `json:"id" binding:"required"`
+    {{.NameEnPas}}AddReq
 }
 
 type {{.NameEnPas}}AddReq struct {
-
+{{ customAdd }}
 }
 
 type {{.NameEnPas}} struct {
-
+{{customALl}}
 }

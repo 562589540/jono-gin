@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/562589540/jono-gin/ghub"
 	"github.com/562589540/jono-gin/ghub/gutils"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -38,14 +38,14 @@ func (m *Service) Create(ctx context.Context, data *dto.AdminAddReq) error {
 
 func (m *Service) Delete(ctx context.Context, id uint) error {
 	return dal.Q.Transaction(func(tx *dal.Query) error {
-		ad := tx.Admin
+		dao := tx.Admin
 		mModel := &model.Admin{}
 		mModel.ID = id
-		err := ad.RoleSign.WithContext(ctx).Model(mModel).Clear()
+		err := dao.RoleSign.WithContext(ctx).Model(mModel).Clear()
 		if err != nil {
 			return err
 		}
-		_, err = ad.WithContext(ctx).Where(ad.ID.Eq(id)).Delete()
+		_, err = dao.WithContext(ctx).Where(dao.ID.Eq(id)).Delete()
 		if err != nil {
 			return err
 		}
@@ -55,16 +55,16 @@ func (m *Service) Delete(ctx context.Context, id uint) error {
 
 func (m *Service) BatchDelete(ctx context.Context, ids []uint) error {
 	return dal.Q.Transaction(func(tx *dal.Query) error {
-		ad := tx.Admin
+		dao := tx.Admin
 		for i := 0; i < len(ids); i++ {
 			mModel := &model.Admin{}
 			mModel.ID = ids[i]
-			err := ad.RoleSign.WithContext(ctx).Model(mModel).Clear()
+			err := dao.RoleSign.WithContext(ctx).Model(mModel).Clear()
 			if err != nil {
 				return err
 			}
 		}
-		_, err := ad.WithContext(ctx).Where(ad.ID.In(ids...)).Delete()
+		_, err := dao.WithContext(ctx).Where(dao.ID.In(ids...)).Delete()
 		if err != nil {
 			return err
 		}
@@ -81,8 +81,8 @@ func (m *Service) Update(ctx context.Context, data *dto.AdminUpdateReq) error {
 }
 
 func (m *Service) UpdateStatus(ctx context.Context, data *dto.AdminUpdateStatusReq) error {
-	ad := dal.Admin
-	_, err := m.Dao(ctx).Where(ad.ID.Eq(data.ID)).Update(ad.Status, data.GetStatus())
+	dao := dal.Admin
+	_, err := m.Dao(ctx).Where(dao.ID.Eq(data.ID)).Update(dao.Status, data.GetStatus())
 	if err != nil {
 		return err
 	}
@@ -94,8 +94,8 @@ func (m *Service) UpdatePassword(ctx context.Context, data *dto.AdminUpdatePassR
 	if err != nil {
 		return err
 	}
-	ad := dal.Admin
-	_, err = m.Dao(ctx).Where(ad.ID.Eq(data.ID)).Update(ad.Password, password)
+	dao := dal.Admin
+	_, err = m.Dao(ctx).Where(dao.ID.Eq(data.ID)).Update(dao.Password, password)
 	if err != nil {
 		return err
 	}
@@ -107,8 +107,8 @@ func (m *Service) UpdateAvatar(ctx context.Context, data *dto.AdminUpdateAvatar)
 	if err != nil {
 		return err
 	}
-	ad := dal.Admin
-	_, err = m.Dao(ctx).Where(ad.ID.Eq(data.ID)).Update(ad.Avatar, image)
+	dao := dal.Admin
+	_, err = m.Dao(ctx).Where(dao.ID.Eq(data.ID)).Update(dao.Avatar, image)
 	if err != nil {
 		return err
 	}
@@ -117,11 +117,11 @@ func (m *Service) UpdateAvatar(ctx context.Context, data *dto.AdminUpdateAvatar)
 
 func (m *Service) UpdateRole(ctx context.Context, data *dto.AdminUpdateRoleReq) error {
 	return dal.Q.Transaction(func(tx *dal.Query) error {
-		ad := tx.Admin
+		dao := tx.Admin
 		mModel := &model.Admin{}
 		mModel.ID = data.ID
 		//先清空所有关联
-		if err := ad.RoleSign.WithContext(ctx).Model(mModel).Clear(); err != nil {
+		if err := dao.RoleSign.WithContext(ctx).Model(mModel).Clear(); err != nil {
 			return err
 		}
 		if len(data.RoleIds) > 0 {
@@ -131,7 +131,7 @@ func (m *Service) UpdateRole(ctx context.Context, data *dto.AdminUpdateRoleReq) 
 				return err
 			}
 			// 为管理员添加新的角色关系
-			if err = ad.RoleSign.WithContext(ctx).Model(mModel).Append(roles...); err != nil {
+			if err = dao.RoleSign.WithContext(ctx).Model(mModel).Append(roles...); err != nil {
 				return err
 			}
 		}
@@ -154,26 +154,26 @@ func (m *Service) GetUserRoleIds(ctx context.Context, id uint) ([]uint, error) {
 }
 
 func (m *Service) List(ctx context.Context, search *dto.AdminSearchReq) ([]dto.Admin, int64, error) {
-	ad := dal.Admin
-	q := ad.WithContext(ctx).Preload(ad.Dept)
+	dao := dal.Admin
+	q := dao.WithContext(ctx).Preload(dao.Dept)
 
 	if search.DeptId != 0 {
-		q = q.Where(ad.DeptID.Eq(search.DeptId))
+		q = q.Where(dao.DeptID.Eq(search.DeptId))
 	}
 
 	if search.Mobile != "" {
-		q = q.Where(ad.Mobile.Eq(search.Mobile))
+		q = q.Where(dao.Mobile.Eq(search.Mobile))
 	}
 
 	if search.Status != "" {
-		q = q.Where(ad.Status.Is(search.Status == "1"))
+		q = q.Where(dao.Status.Is(search.Status == "1"))
 	}
 
 	if search.UserName != "" {
-		q = q.Where(ad.UserName.Like(fmt.Sprintf("%%%s%%", search.UserName)))
+		q = q.Where(dao.UserName.Like(fmt.Sprintf("%%%s%%", search.UserName)))
 	}
 
-	list, total, err := q.Order(ad.ID.Desc()).FindByPage(search.GetOffset(), search.GetLimit())
+	list, total, err := q.Order(dao.ID.Desc()).FindByPage(search.GetOffset(), search.GetLimit())
 	if err != nil {
 		return nil, 0, err
 	}
@@ -186,11 +186,11 @@ func (m *Service) List(ctx context.Context, search *dto.AdminSearchReq) ([]dto.A
 
 func (m *Service) SetLogin(ctx context.Context, userName, ip string) {
 	t := time.Now()
-	ad := dal.Admin
+	dao := dal.Admin
 	mModel := new(model.Admin)
 	mModel.LastLoginIp = ip
 	mModel.LastLoginTime = &t
-	_, err := m.Dao(ctx).Where(ad.UserName.Eq(userName)).Updates(&mModel)
+	_, err := m.Dao(ctx).Where(dao.UserName.Eq(userName)).Updates(&mModel)
 	if err != nil {
 		ghub.Log.Error(err.Error())
 	}

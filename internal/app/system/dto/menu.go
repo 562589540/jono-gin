@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"github.com/562589540/jono-gin/internal/constants"
+	"github.com/562589540/jono-gin/internal/constants/enum"
 )
 
 // AddMenuReq 菜单新增
@@ -24,13 +24,13 @@ type Menu struct {
 
 // MenuBase 基础菜单
 type MenuBase struct {
-	ID        uint                `form:"id" json:"id,omitempty"`
-	ParentID  *uint               `form:"parentId" json:"parentId"`
-	MenuType  constants.MenuGenre `form:"menuType" json:"menuType" binding:"min=0,max=3" m:"菜单类型错误"`
-	Path      string              `form:"path" json:"path,omitempty"`           // 路由地址
-	Component string              `form:"component" json:"component,omitempty"` // 按需加载需要展示的页面
-	Name      string              `form:"name" json:"name,omitempty"`           // 路由名字（必须保持唯一）
-	Redirect  string              `form:"redirect" json:"redirect,omitempty"`   //路由重定向地址
+	ID        uint           `form:"id" json:"id,omitempty"`
+	ParentID  *uint          `form:"parentId" json:"parentId"`
+	MenuType  enum.MenuGenre `form:"menuType" json:"menuType" binding:"min=0,max=3" m:"菜单类型错误"`
+	Path      string         `form:"path" json:"path,omitempty"`           // 路由地址
+	Component string         `form:"component" json:"component,omitempty"` // 按需加载需要展示的页面
+	Name      string         `form:"name" json:"name,omitempty"`           // 路由名字（必须保持唯一）
+	Redirect  string         `form:"redirect" json:"redirect,omitempty"`   //路由重定向地址
 }
 
 // MenuMeta 路由元信息
@@ -64,13 +64,13 @@ type RoleMenu struct {
 
 // MenuList 菜单列表
 type MenuList struct {
-	ID        uint                `json:"-"`
-	MenuType  constants.MenuGenre `json:"-"`
-	Path      string              `json:"path,omitempty"`      // 路由地址
-	Component string              `json:"component,omitempty"` // 按需加载需要展示的页面 后端不需要
-	Name      string              `json:"name,omitempty"`      // 路由名字（必须保持唯一）
-	Redirect  string              `json:"redirect,omitempty"`  //路由重定向地址
-	Meta      *MenuMeta           `json:"meta,omitempty"`      // 路由元信息
-	Children  []*MenuList         `json:"children,omitempty"`  // 子路由
-	Rank      int                 `json:"-"`                   // 菜单排序不传参内部使用字段
+	ID        uint           `json:"-"`
+	MenuType  enum.MenuGenre `json:"-"`
+	Path      string         `json:"path,omitempty"`      // 路由地址
+	Component string         `json:"component,omitempty"` // 按需加载需要展示的页面 后端不需要
+	Name      string         `json:"name,omitempty"`      // 路由名字（必须保持唯一）
+	Redirect  string         `json:"redirect,omitempty"`  //路由重定向地址
+	Meta      *MenuMeta      `json:"meta,omitempty"`      // 路由元信息
+	Children  []*MenuList    `json:"children,omitempty"`  // 子路由
+	Rank      int            `json:"-"`                   // 菜单排序不传参内部使用字段
 }

@@ -1,6 +1,7 @@
 package bizctx
 
 import (
+	"context"
 	"fmt"
 	"github.com/562589540/jono-gin/internal/app/common/model"
 	sysModel "github.com/562589540/jono-gin/internal/app/system/model"
@@ -25,7 +26,18 @@ func New() service.IContextService {
 	return instance
 }
 
-func (m *Service) GetLoginUser(c *gin.Context) (*model.LoginUser, error) {
+func (m *Service) convertGinCtx(ctx context.Context) (*gin.Context, error) {
+	if c, ok := ctx.(*gin.Context); ok {
+		return c, nil
+	}
+	return nil, fmt.Errorf("上下文转换失败")
+}
+
+func (m *Service) GetLoginUser(ctx context.Context) (*model.LoginUser, error) {
+	c, err := m.convertGinCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
 	nUser, exists := c.Get(constants.LoginUser)
 	if !exists {
 		return nil, fmt.Errorf("为获取到上下文数据")
@@ -37,7 +49,11 @@ func (m *Service) GetLoginUser(c *gin.Context) (*model.LoginUser, error) {
 	return &mUser, nil
 }
 
-func (m *Service) GetLoginUserModel(c *gin.Context) (*sysModel.Admin, error) {
+func (m *Service) GetLoginUserModel(ctx context.Context) (*sysModel.Admin, error) {
+	c, err := m.convertGinCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
 	uAdmin, exists := c.Get(constants.LoginAdminMode)
 	if !exists {
 		return nil, fmt.Errorf("为获取到上下文数据")

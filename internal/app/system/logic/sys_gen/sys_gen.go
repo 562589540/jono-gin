@@ -3,10 +3,12 @@ package sys_gen
 import (
 	"context"
 	"fmt"
-	"github.com/562589540/jono-gin/ghub/gbootstrap"
+	"github.com/562589540/jono-gin/ghub"
 	"github.com/562589540/jono-gin/ghub/glibrary/gstr"
 	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate/enum"
+	"github.com/562589540/jono-gin/ghub/glibrary/gtemplate/pkg"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -25,7 +27,7 @@ var (
 func New() service.IGenService {
 	once.Do(func() {
 		logMode := logger.Info
-		if !gbootstrap.Cfg.Mode.Develop {
+		if !ghub.Cfg.Mode.Develop {
 			logMode = logger.Error
 		}
 		dsn := "root:112233@tcp(localhost:3306)/information_schema?charset=utf8mb4&parseTime=True&loc=Local"
@@ -81,7 +83,7 @@ func (m *Service) TableList(ctx context.Context, req dto.TableInfoSearchReq) ([]
 	return list, count, nil
 }
 
-func (m *Service) TableDetails(ctx context.Context, req dto.TableInfoSearchReq) (*gtemplate.BaseInfo, error) {
+func (m *Service) TableDetails(ctx context.Context, req dto.TableInfoSearchReq) (*pkg.BaseInfo, error) {
 	var table model.TableInfo
 	err := m.db.WithContext(ctx).Table("tables").
 		Where("table_schema = ?", m.dateBase).
@@ -89,7 +91,7 @@ func (m *Service) TableDetails(ctx context.Context, req dto.TableInfoSearchReq) 
 	if err != nil {
 		return nil, err
 	}
-	t := &gtemplate.BaseInfo{
+	t := &pkg.BaseInfo{
 		SortField:    "id",
 		TableName:    table.TableName,
 		TableComment: table.TableComment,
@@ -116,26 +118,34 @@ func (m *Service) TableInfo(ctx context.Context, req dto.TableInfoSearchReq) ([]
 	return columns, nil
 }
 
-func (m *Service) GenTableFields(ctx context.Context, modeList []model.TableColumn) []*gtemplate.TableFields {
-	var list []*gtemplate.TableFields
+func (m *Service) GenTableFields(ctx context.Context, modeList []model.TableColumn) []*pkg.TableFields {
+	var list []*pkg.TableFields
 	for _, column := range modeList {
 		//过滤不需要的字段
-		if _, ok := gtemplate.FieldFilter[column.ColumnName]; !ok {
-			list = append(list, &gtemplate.TableFields{
+		if _, ok := pkg.FieldFilter[column.ColumnName]; !ok {
+			var edit = true
+			if column.ColumnName == "id" {
+				edit = false
+			}
+			goName := gstr.SnakeToPascal(column.ColumnName)
+			if goName == "Id" {
+				goName = "ID"
+			}
+			list = append(list, &pkg.TableFields{
 				Field:     column.ColumnName,
 				FieldDes:  column.ColumnComment,
 				MysqlType: column.ColumnType,
-				GoType:    gtemplate.ConvertDBTypeToGoType(column.ColumnType),
-				TsType:    gtemplate.ConvertDBTypeToTS(column.ColumnType),
-				GoName:    gstr.SnakeToPascal(column.ColumnName),
+				GoType:    pkg.ConvertDBTypeToGoType(column.ColumnType),
+				TsType:    pkg.ConvertDBTypeToTS(column.ColumnType),
+				GoName:    goName,
 				JsonName:  gstr.SnakeToCamel(column.ColumnName),
-				Edit:      true,
+				Edit:      edit,
 				List:      true,
 				Details:   true,
 				Query:     true,
-				FillUp:    true,
-				QueryType: gtemplate.Equal,
-				ShowType:  gtemplate.ShowInput,
+				FillUp:    false,
+				QueryType: enum.Equal,
+				ShowType:  enum.ShowInput,
 				Required:  column.IsNullable == "NO",
 				Date:      "", //暂时还未知
 			})
@@ -182,7 +192,7 @@ func (m *Service) GinInfo(ctx context.Context, req dto.TableInfoSearchReq) (*mod
 		return nil, err
 	}
 	tableFields := m.GenTableFields(ctx, fieldsInfo)
-	genInfo := &gtemplate.GenInfo{
+	genInfo := &pkg.GenInfo{
 		Template:     "0",
 		BusinessName: gstr.ToCamelCase(baseInfo.ModelName),
 		PackPath:     "system",
@@ -204,56 +214,12 @@ func (m *Service) ImportDate(ctx context.Context, req model.GenDate) error {
 	}
 	if req.BaseInfo != nil && req.GenInfo != nil && req.FieldsInfo != nil {
 		return dal.Q.Transaction(func(tx *dal.Query) error {
+			gen := m.setGenerator(req.BaseInfo, req.GenInfo, req.FieldsInfo)
+			err := gen.GenCodeAllStr()
+			if err != nil {
+				return err
+			}
 			//生成代码文本
-			tp := gtemplate.NewGTemplate(req.BaseInfo, req.GenInfo, req.FieldsInfo)
-			indexStr, err := tp.GenerateVueIndexStr()
-			if err != nil {
-				return err
-			}
-			apiStr, err := tp.GenerateVueApiTsStr()
-			if err != nil {
-				return err
-			}
-			formStr, err := tp.GenerateVueFormStr()
-			if err != nil {
-				return err
-			}
-			hookStr, err := tp.GenerateVueHookTsxStr()
-			if err != nil {
-				return err
-			}
-			ruleStr, err := tp.GenerateVueRuleTsStr()
-			if err != nil {
-				return err
-			}
-			typesStr, err := tp.GenerateVueTypesTsStr()
-			if err != nil {
-				return err
-			}
-			goModelStr, err := tp.GenerateGoStr("model")
-			if err != nil {
-				return err
-			}
-			goDtoStr, err := tp.GenerateGoStr("dto")
-			if err != nil {
-				return err
-			}
-			goServiceStr, err := tp.GenerateGoStr("service")
-			if err != nil {
-				return err
-			}
-			goApiStr, err := tp.GenerateGoStr("api")
-			if err != nil {
-				return err
-			}
-			goRouterStr, err := tp.GenerateGoStr("router")
-			if err != nil {
-				return err
-			}
-			goLogicStr, err := tp.GenerateGoStr("logic")
-			if err != nil {
-				return err
-			}
 			var mode *model.SysGen
 			if exist {
 				mode = first
@@ -262,18 +228,19 @@ func (m *Service) ImportDate(ctx context.Context, req model.GenDate) error {
 			}
 			mode.TableNamed = req.BaseInfo.TableName
 			mode.TableComment = req.BaseInfo.TableComment
-			mode.GoApiCode = goApiStr
-			mode.GoDtoCode = goDtoStr
-			mode.GoLogicCode = goLogicStr
-			mode.GoModelCode = goModelStr
-			mode.GoRouterCode = goRouterStr
-			mode.GoServiceCode = goServiceStr
-			mode.VueApiCode = apiStr
-			mode.VueFormCode = formStr
-			mode.VueHookCode = hookStr
-			mode.VueIndexCode = indexStr
-			mode.VueRuleCode = ruleStr
-			mode.VueTypesCode = typesStr
+			//代码
+			mode.GoApiCode = gen.Code.GoApiCode
+			mode.GoDtoCode = gen.Code.GoDtoCode
+			mode.GoLogicCode = gen.Code.GoLogicCode
+			mode.GoModelCode = gen.Code.GoModelCode
+			mode.GoRouterCode = gen.Code.GoRouterCode
+			mode.GoServiceCode = gen.Code.GoServiceCode
+			mode.VueApiCode = gen.Code.VueApiCode
+			mode.VueFormCode = gen.Code.VueFormCode
+			mode.VueHookCode = gen.Code.VueHookCode
+			mode.VueIndexCode = gen.Code.VueIndexCode
+			mode.VueRuleCode = gen.Code.VueRuleCode
+			mode.VueTypesCode = gen.Code.VueTypesCode
 			if err = mode.SerializeGenInfo(req.GenInfo); err != nil {
 				return err
 			}
@@ -337,14 +304,18 @@ func (m *Service) GetCodes(ctx context.Context, id uint) (*dto.GenCodeRes, error
 
 func (m *Service) Delete(ctx context.Context, ids []uint) error {
 	gen := dal.SysGen
-	_, err := gen.WithContext(ctx).Where(gen.ID.In(ids...)).Delete()
+	info, err := gen.WithContext(ctx).Where(gen.ID.In(ids...)).Delete()
 	if err != nil {
 		return err
+	}
+	if info.RowsAffected == 0 {
+		return fmt.Errorf(constants.DeleteError)
 	}
 	return nil
 }
 
 func (m *Service) GenCode(ctx context.Context, id uint) error {
+	//先创建模型和dal 如果没有的话报错
 	gen := dal.SysGen
 	mModel, err := gen.WithContext(ctx).Where(gen.ID.Eq(id)).First()
 	if err != nil {
@@ -362,9 +333,9 @@ func (m *Service) GenCode(ctx context.Context, id uint) error {
 	if err != nil {
 		return err
 	}
-	//执行代码写入
-	tp := gtemplate.NewGTemplate(baseInfo, genInfo, fieldsInfo)
-	err = tp.GenCode(gtemplate.GenCodes{
+	tp := m.setGenerator(baseInfo, genInfo, fieldsInfo)
+	//写入代码
+	err = tp.WriteCode(pkg.GenCodes{
 		GoApiCode:     mModel.GoApiCode,
 		GoDtoCode:     mModel.GoDtoCode,
 		GoLogicCode:   mModel.GoLogicCode,
@@ -382,4 +353,24 @@ func (m *Service) GenCode(ctx context.Context, id uint) error {
 		return err
 	}
 	return nil
+}
+
+func (m *Service) setGenerator(baseInfo *pkg.BaseInfo, genInfo *pkg.GenInfo, fieldsInfo []*pkg.TableFields) *gtemplate.Generator {
+	tp := gtemplate.NewGTemplate(baseInfo, genInfo, fieldsInfo)
+	gen := gtemplate.NewGenerator()
+	//Vue 生成器
+	gen.PushGen(gtemplate.NewGVueIndexGen(tp))
+	gen.PushGen(gtemplate.NewGVueFormGen(tp))
+	gen.PushGen(gtemplate.NewGVueRuleGen(tp))
+	gen.PushGen(gtemplate.NewGVueHookGen(tp))
+	gen.PushGen(gtemplate.NewGVueApiGen(tp))
+	gen.PushGen(gtemplate.NewGVueTypesGen(tp))
+	//Go 生成器
+	gen.PushGen(gtemplate.NewGGoApiGen(tp))
+	gen.PushGen(gtemplate.NewGGoServiceGen(tp))
+	gen.PushGen(gtemplate.NewGGoDTOGen(tp))
+	gen.PushGen(gtemplate.NewGGoRouterGen(tp))
+	gen.PushGen(gtemplate.NewGGoLogicGen(tp))
+	gen.PushGen(gtemplate.NewGGoModelGen(tp))
+	return gen
 }

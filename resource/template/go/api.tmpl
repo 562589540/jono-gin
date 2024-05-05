@@ -18,8 +18,8 @@ func New{{.NameEnPas}}Api({{.NameEn}}Service service.I{{.NameEnPas}}Service) *{{
 	}
 }
 
-func (m {{.NameEnPas}}Api) Create(_ *gin.Context, req dto.{{.NameEnPas}}AddReq) (any, error) {
-	if err := m.{{.NameEn}}Service.Create(&req); err != nil {
+func (m {{.NameEnPas}}Api) Create(c *gin.Context, req dto.{{.NameEnPas}}AddReq) (any, error) {
+	if err := m.{{.NameEn}}Service.Create(c, &req); err != nil {
 		return nil, err
 	}
 	return gres.Response{
@@ -27,8 +27,8 @@ func (m {{.NameEnPas}}Api) Create(_ *gin.Context, req dto.{{.NameEnPas}}AddReq) 
 	}, nil
 }
 
-func (m {{.NameEnPas}}Api) List(_ *gin.Context, req dto.{{.NameEnPas}}SearchReq) (any, error) {
-	list, total, err := m.{{.NameEn}}Service.List(&req)
+func (m {{.NameEnPas}}Api) List(c *gin.Context, req dto.{{.NameEnPas}}SearchReq) (any, error) {
+	list, total, err := m.{{.NameEn}}Service.List(c, &req)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +41,8 @@ func (m {{.NameEnPas}}Api) List(_ *gin.Context, req dto.{{.NameEnPas}}SearchReq)
 	}, nil
 }
 
-func (m {{.NameEnPas}}Api) Update(_ *gin.Context, req dto.{{.NameEnPas}}UpdateReq) (any, error) {
-	if err := m.{{.NameEn}}Service.Update(&req); err != nil {
+func (m {{.NameEnPas}}Api) Update(c *gin.Context, req dto.{{.NameEnPas}}UpdateReq) (any, error) {
+	if err := m.{{.NameEn}}Service.Update(c, &req); err != nil {
 		return nil, err
 	}
 	return gres.Response{
@@ -50,8 +50,8 @@ func (m {{.NameEnPas}}Api) Update(_ *gin.Context, req dto.{{.NameEnPas}}UpdateRe
 	}, nil
 }
 
-func (m {{.NameEnPas}}Api) Delete(_ *gin.Context, req gdto.IDSReq) (any, error) {
-	if err := m.{{.NameEn}}Service.Delete(req.IDS); err != nil {
+func (m {{.NameEnPas}}Api) Delete(c *gin.Context, req gdto.IDSReq) (any, error) {
+	if err := m.{{.NameEn}}Service.Delete(c, req.IDS); err != nil {
 		return nil, err
 	}
 	return gres.Response{

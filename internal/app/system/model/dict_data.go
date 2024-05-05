@@ -6,7 +6,7 @@ import (
 
 // DictData 字典数据表
 type DictData struct {
-	DictCode  int64     `gorm:"column:dict_code;type:bigint;primaryKey;autoIncrement:true;comment:字典编码" json:"dict_code"` // 字典编码
+	DictCode  uint      `gorm:"column:dict_code;type:bigint;primaryKey;autoIncrement:true;comment:字典编码" json:"dict_code"` // 字典编码
 	DictSort  int32     `gorm:"column:dict_sort;type:int;comment:字典排序" json:"dict_sort"`                                  // 字典排序
 	DictLabel string    `gorm:"column:dict_label;type:varchar(100);comment:字典标签" json:"dict_label"`                       // 字典标签
 	DictValue string    `gorm:"column:dict_value;type:varchar(100);comment:字典键值" json:"dict_value"`                       // 字典键值
@@ -20,4 +20,21 @@ type DictData struct {
 	Remark    string    `gorm:"column:remark;type:varchar(500);comment:备注" json:"remark"`                                 // 备注
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;comment:创建时间" json:"created_at"`                           // 创建时间
 	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;comment:修改时间" json:"updated_at"`                           // 修改时间
+}
+
+func (m *DictData) AllowScan() {}
+
+func (m *DictData) SetStatus(s int) {
+	m.Status = s == 1
+}
+
+func (m *DictData) SetIsDefault(s int) {
+	m.IsDefault = s == 1
+}
+
+func (m *DictData) GetIsDefault() int {
+	if m.IsDefault {
+		return 1
+	}
+	return 0
 }

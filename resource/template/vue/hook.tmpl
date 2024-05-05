@@ -5,6 +5,7 @@ import { ElMessageBox } from "element-plus";
 import { transformI18n } from "@/plugins/i18n";
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "./types";
+import { type PlusColumn } from "plus-pro-components";
 import type { PaginationProps } from "@pureadmin/table";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import { type Ref, reactive, ref, onMounted, h, toRaw } from "vue";
@@ -14,7 +15,7 @@ import { Add[[ .NameEnPas ]], Del[[ .NameEnPas ]], Get[[ .NameEnPas ]]List, Upda
 export function useHook(tableRef: Ref) {
   const { tagStyle } = usePublicHooks();
 
-  const form = reactive({
+  const form = ref({
 [[ customVar .Fields ]]
   });
   const formRef = ref();
@@ -50,6 +51,12 @@ export function useHook(tableRef: Ref) {
     }
   ];
 
+
+  const searchColumns: PlusColumn[] = [
+[[ customSearch .Fields ]]
+  ];
+
+
 [[ switchChange  ]]
 
   async function handleDelete(row) {
@@ -82,7 +89,7 @@ export function useHook(tableRef: Ref) {
   async function onSearch() {
     loading.value = true;
     const response = await Get[[ .NameEnPas ]]List({
-      ...toRaw(form),
+      ...toRaw(form.value),
       page: pagination.currentPage,
       limit: pagination.pageSize,
     });
@@ -97,9 +104,8 @@ export function useHook(tableRef: Ref) {
     }, 500);
   }
 
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
+  const resetForm = (values) => {
+    form.value = values
     onSearch();
   };
 
@@ -120,13 +126,13 @@ export function useHook(tableRef: Ref) {
       beforeSure: (done, { options }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
-        var msg
-        if (title === "新增") {
-          msg = `您新增了一条数据`
-        } else {
-          msg = `您${title}了序号为${curData.id}的这条数据`
-        }
         function chores() {
+          var msg: string
+          if (title === "新增") {
+            msg = `您新增了一条数据`
+          } else {
+            msg = `您${title}了序号为${curData.id}的这条数据`
+          }
           message(msg, {
             type: "success"
           });
@@ -184,6 +190,7 @@ export function useHook(tableRef: Ref) {
     isShow,
     loading,
     columns,
+    searchColumns,
     dataList,
     pagination,
     selectedNum,

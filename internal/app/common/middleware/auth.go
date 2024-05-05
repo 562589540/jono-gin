@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/562589540/jono-gin/ghub/glibrary/gres"
-	"github.com/562589540/jono-gin/ghub/gutils"
+	"github.com/562589540/jono-gin/ghub/glibrary/gtoken"
 	"github.com/562589540/jono-gin/internal/app/common/model"
 	"github.com/562589540/jono-gin/internal/constants"
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ func tokenErr(c *gin.Context, msg string) {
 
 func Auth() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		jwtCostClaims, _, err := gutils.ResolveGinToken(c, gutils.ResolveGinTokenOption{})
+		jwtCostClaims, _, err := gtoken.ResolveGinToken(c, gtoken.ResolveGinTokenOption{})
 		if err != nil {
 			tokenErr(c, err.Error())
 			return

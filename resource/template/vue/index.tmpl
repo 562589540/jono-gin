@@ -8,9 +8,12 @@
 // company:jono工作室
 // ==========================================================================
 import { useHook } from "./utils/hook";
-import { ref, nextTick, onMounted } from "vue";
+import { ref, toRaw, nextTick, onMounted } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { PlusSearch } from "plus-pro-components";
+import "plus-pro-components/es/components/search/style/css";
+
 import {
   delay,
   subBefore,
@@ -27,7 +30,6 @@ defineOptions({
   name: "[[ .NameEnPas ]]"
 });
 
-const formRef = ref();
 const tableRef = ref();
 const contentRef = ref();
 const treeHeight = ref();
@@ -37,6 +39,7 @@ const {
   isShow,
   loading,
   columns,
+  searchColumns,
   dataList,
   pagination,
   selectedNum,
@@ -50,7 +53,7 @@ const {
   handleCurrentChange,
   handleSelectionChange
 } = useHook(tableRef);
-
+const formCopy = { ...toRaw(form.value) };
 onMounted(() => {
   useResizeObserver(contentRef, async () => {
     await nextTick();
@@ -65,28 +68,17 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
-    >
-[[ customIndexFormItem .Fields ]]
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon('ri:search-line')"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
-
+    <PlusSearch
+      v-model="form"
+      :search-loading="loading"
+      :defaultValues="formCopy"
+      :columns="searchColumns"
+      :show-number="2"
+      label-width="80"
+      label-position="right"
+      @search="onSearch"
+      @reset="resetForm"
+    />
     <div
       ref="contentRef"
       :class="['flex', deviceDetection() ? 'flex-wrap' : '']"
@@ -142,6 +134,7 @@ onMounted(() => {
             :loading="loading"
             :size="size"
             :data="dataList"
+            showOverflowTooltip
             :columns="dynamicColumns"
             :pagination="pagination"
             :paginationSmall="size === 'small' ? true : false"
@@ -165,7 +158,7 @@ onMounted(() => {
                 修改
               </el-button>
               <el-popconfirm
-                :title="`是否确认删除序号为为${row.id}的这条数据`"
+                :title="`是否确认删除序号为${row.id}的这条数据`"
                 @confirm="handleDelete(row)"
               >
                 <template #reference>

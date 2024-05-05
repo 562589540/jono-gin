@@ -3,9 +3,8 @@ package casbin
 import (
 	"fmt"
 	"github.com/562589540/jono-gin/ghub"
-	"github.com/562589540/jono-gin/ghub/gbootstrap"
 	"github.com/562589540/jono-gin/ghub/gutils"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -30,7 +29,7 @@ func New() *Service {
 		}
 
 		// 使用SyncedEnforcer以支持并发访问
-		enforcer, err := casbin.NewSyncedEnforcer(gbootstrap.Cfg.Casbin.ModelFile, adapter)
+		enforcer, err := casbin.NewSyncedEnforcer(ghub.Cfg.Casbin.ModelFile, adapter)
 		if err != nil {
 			gutils.ErrorPanic(err) // 错误处理：打印错误并退出
 		}

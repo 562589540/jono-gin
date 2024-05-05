@@ -3,8 +3,9 @@ package login
 import (
 	"context"
 	"fmt"
+	"github.com/562589540/jono-gin/ghub/glibrary/gtoken"
 	"github.com/562589540/jono-gin/ghub/gutils"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -27,8 +28,8 @@ type Service struct {
 }
 
 func (m *Service) Login(ctx context.Context, data *dto.AdminLoginReq) (model *model.Admin, err error) {
-	ad := dal.Admin
-	model, err = ad.WithContext(ctx).Preload(ad.RoleSign).Where(ad.UserName.Eq(data.UserName)).First()
+	adminDao := dal.Admin
+	model, err = adminDao.WithContext(ctx).Preload(adminDao.RoleSign).Where(adminDao.UserName.Eq(data.UserName)).First()
 	if err != nil {
 		err = fmt.Errorf(constants.UserNameError)
 		return
@@ -42,5 +43,5 @@ func (m *Service) Login(ctx context.Context, data *dto.AdminLoginReq) (model *mo
 
 // RefreshToken 续签token
 func (m *Service) RefreshToken(ctx *gin.Context) (token string, refreshToken string, expireTime time.Time, err error) {
-	return gutils.RefreshToken(ctx)
+	return gtoken.RefreshToken(ctx)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/562589540/jono-gin/ghub/glibrary/gjob"
 	"github.com/562589540/jono-gin/ghub/glibrary/gscheduler"
 	"github.com/562589540/jono-gin/ghub/gutils"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/logic/casbin"
 	"github.com/562589540/jono-gin/temp"
 	"os"
@@ -24,11 +24,15 @@ func init() {
 
 func Setup() error {
 	//初始化配置
-	gbootstrap.InitConfig()
+	config, err := gbootstrap.InitConfig()
+	if err != nil {
+		return fmt.Errorf("init config err: %v", err)
+	}
+	ghub.Cfg = config
 
 	//检查静态目录是否存在
-	if _, err := os.Stat(gbootstrap.Cfg.Path.ResourcePath); os.IsNotExist(err) {
-		return fmt.Errorf("resource directory does not exist: %s", gbootstrap.Cfg.Path.ResourcePath)
+	if _, err := os.Stat(ghub.Cfg.Path.ResourcePath); os.IsNotExist(err) {
+		return fmt.Errorf("resource directory does not exist: %s", ghub.Cfg.Path.ResourcePath)
 	}
 
 	//初始化log模块
@@ -56,7 +60,7 @@ func Setup() error {
 	ghub.EventBus = geventbus.GetInstance()
 
 	//初始化异步工作池
-	ghub.Pool = gjob.GetInstance(10)
+	ghub.Pool = gjob.GetInstance(100)
 
 	//初始化异步任务
 	ghub.Task = gscheduler.GetInstance()
@@ -75,6 +79,6 @@ func Clean() {
 	}
 	//清理定时任务
 	if ghub.Task != nil {
-		ghub.Task.StopAll()
+		ghub.Task.Stop()
 	}
 }

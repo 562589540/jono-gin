@@ -1,9 +1,9 @@
 package system
 
 import (
-	"github.com/562589540/jono-gin/ghub"
 	"github.com/562589540/jono-gin/ghub/glibrary/gdto"
 	"github.com/562589540/jono-gin/ghub/glibrary/gres"
+	"github.com/562589540/jono-gin/ghub/gutils"
 	"github.com/562589540/jono-gin/internal/app/system/dto"
 	"github.com/562589540/jono-gin/internal/app/system/model"
 	"github.com/562589540/jono-gin/internal/app/system/service"
@@ -21,7 +21,7 @@ func NewGenApi(service service.IGenService) *MysqlApi {
 }
 
 func (m MysqlApi) List(c *gin.Context, req dto.TableInfoSearchReq) (any, error) {
-	req.Time, _ = ghub.ParseTimeInterval(c, "createTime")
+	req.Time, _ = gutils.ParseTimeInterval(c, "createTime")
 	list, total, err := m.service.List(c, req)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (m MysqlApi) List(c *gin.Context, req dto.TableInfoSearchReq) (any, error) 
 }
 
 func (m MysqlApi) TableList(c *gin.Context, req dto.TableInfoSearchReq) (any, error) {
-	req.Time, _ = ghub.ParseTimeInterval(c, "createTime")
+	req.Time, _ = gutils.ParseTimeInterval(c, "createTime")
 	list, total, err := m.service.TableList(c, req)
 	if err != nil {
 		return nil, err

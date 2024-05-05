@@ -3,9 +3,9 @@ package middleware
 import (
 	"fmt"
 	"github.com/562589540/jono-gin/ghub"
-	"github.com/562589540/jono-gin/ghub/gbootstrap"
 	"github.com/562589540/jono-gin/ghub/glibrary/gres"
-	"github.com/562589540/jono-gin/internal/app/system/dal"
+	"github.com/562589540/jono-gin/ghub/gutils"
+	"github.com/562589540/jono-gin/internal/app/common/dal"
 	"github.com/562589540/jono-gin/internal/app/system/logic/bizctx"
 	"github.com/562589540/jono-gin/internal/app/system/logic/casbin"
 	"github.com/562589540/jono-gin/internal/constants"
@@ -41,7 +41,7 @@ func AuthRule() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		if !ghub.Contains(gbootstrap.Cfg.System.NotCheckAuthAdminIds, mUser.ID) {
+		if !gutils.Contains(ghub.Cfg.System.NotCheckAuthAdminIds, mUser.ID) {
 			hasRole := false
 			path := c.Request.URL.Path
 			for _, role := range mAdminModel.RoleSign {

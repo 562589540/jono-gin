@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/562589540/jono-gin/internal/app/common/model"
 	"github.com/562589540/jono-gin/internal/constants"
+	"github.com/562589540/jono-gin/internal/constants/enum"
 )
 
 type Admin struct {
@@ -12,11 +13,13 @@ type Admin struct {
 	Dept     Dept    `gorm:"foreignKey:DeptID"`                  // 关联部门
 }
 
+func (m *Admin) AllowScan() {}
+
 func (m *Admin) GetSex() int {
-	if m.Sex == constants.Male {
+	if m.Sex == enum.Male {
 		return 0
 	}
-	if m.Sex == constants.Female {
+	if m.Sex == enum.Female {
 		return 1
 	}
 	return 2

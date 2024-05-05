@@ -11,13 +11,13 @@ import (
 
 func InitLogger() *zap.SugaredLogger {
 	logMode := zapcore.DebugLevel
-	if !Cfg.Mode.Develop {
+	if !cfg.Mode.Develop {
 		logMode = zapcore.InfoLevel
 	}
 
 	var cores []zapcore.Core
 
-	logOutput := Cfg.Log.Output
+	logOutput := cfg.Log.Output
 
 	// 控制台日志输出配置
 	consoleEncoderConfig := zap.NewDevelopmentEncoderConfig()
@@ -62,9 +62,9 @@ func getWriteSyncer() zapcore.WriteSyncer {
 	logFilePath := rootDir + separator + "log" + separator + time.Now().Format(time.DateOnly) + ".txt"
 	lumberjackSyncer := &lumberjack.Logger{
 		Filename:   logFilePath,
-		MaxSize:    Cfg.Log.MaxSize,    //日志文件最大尺寸(M)
-		MaxBackups: Cfg.Log.MaxBackups, //保留旧文件的最大个数
-		MaxAge:     Cfg.Log.MaxAge,     //保留旧文件的最大大天数
+		MaxSize:    cfg.Log.MaxSize,    //日志文件最大尺寸(M)
+		MaxBackups: cfg.Log.MaxBackups, //保留旧文件的最大个数
+		MaxAge:     cfg.Log.MaxAge,     //保留旧文件的最大大天数
 		Compress:   false,              //是否压缩
 	}
 	return zapcore.AddSync(lumberjackSyncer)
